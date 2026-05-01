@@ -1,215 +1,256 @@
-# PlantMind AI V1 - Smart Order Intake
+# 🤖 PlantMind AI
 
-[![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
+**Agentic AI System for Injection Moulding Factory Automation**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-336791.svg)](https://www.postgresql.org/)
-[![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-black.svg)](https://ollama.com/)
-[![Status](https://img.shields.io/badge/V1-Production%20Ready-success.svg)]()
-
-PlantMind AI V1 is a **local-first agentic system** for injection moulding factories that automates order intake from Gmail emails and PO attachments.  
-It converts messy email content into structured orders with an office dashboard and manual review safety net.
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-Local%20AI-black.svg)](https://ollama.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## Why This Project Stands Out
+## 🌟 Overview
 
-- Solves a real manufacturing workflow pain point end-to-end.
-- Uses **local LLM inference** (Ollama + Phi-3 Mini), not paid cloud APIs.
-- Includes production-minded features: auth, logging, flagged review, export, search, UX shortcuts.
-- Built to be deployable in a real SME factory office on local infrastructure.
+PlantMind AI is a **fully local, multi-agent AI system** that automates end-to-end operations of an injection moulding manufacturing factory. From reading customer order emails to scheduling production and sending daily reports - everything runs locally with zero cloud dependency.
 
----
+### The Problem We Solve
 
-## Core Features
-
-### Intake Pipeline
-- Gmail OAuth2 integration for unread inbox scanning.
-- Intelligent email relevance filtering (PO/order/RFQ/enquiry intent).
-- PDF and DOCX attachment parsing.
-- AI extraction to structured JSON: customer, product, quantity, delivery date, instructions.
-- Automatic DB persistence and processing audit log.
-
-### Office Dashboard
-- Manual trigger processing workflow.
-- Flagged orders review workflow.
-- Search/filter on orders.
-- Email log with click-to-preview modal.
-- Processing progress indicator and success toasts.
-- Auto-refresh toggle.
-- Dark mode toggle.
-- Keyboard shortcuts:
-  - `Ctrl + F` focus search
-  - `R` refresh dashboard data
-  - `P` process emails
-- Excel export (`.xlsx`) for orders.
+| Before | After |
+|--------|-------|
+| Manual email reading & data entry | Automated AI-powered order extraction |
+| No inventory visibility | Real-time material tracking with auto-reorder |
+| Production tracking on paper | Live dashboard with progress updates |
+| Manual dispatch notifications | Automatic customer emails on completion |
+| No daily reports | AI-generated morning briefing at 9 AM |
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
-```text
-Office Dashboard
-    ->
-Email Reader Agent (Gmail API)
-    ->
-Email Filter Agent
-    ->
-Attachment Parser (PDF/DOCX)
-    ->
-Order Extraction Agent (Phi-3 Mini via Ollama)
-    ->
-PostgreSQL (orders/customers/email_log/users)
-    ->
-Dashboard + Review Flow + Export
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PLANTMIND AI SYSTEM                          │
+├─────────────────────────────────────────────────────────────────┤
+│  V1: Order Intake          V2: Production & Inventory          │
+│  ─────────────────         ────────────────────────────       │
+│  • Email Reader            • Inventory Check Agent              │
+│  • Email Filter            • Auto Reorder Agent                │
+│  • Attachment Parser      • Production Scheduler               │
+│  • Order Extraction        • Production Tracker                 │
+│                                                                 │
+│  V3: Dispatch & Reporting                                          │
+│  ──────────────────────────                                    │
+│  • Dispatch Watcher        • MIS Report Agent                   │
+│  • Dispatch Agent          • Data Collector                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## ✨ Features
 
-| Layer | Technology |
-|---|---|
-| Backend API | FastAPI |
-| Database | PostgreSQL + SQLAlchemy |
-| AI Runtime | Ollama |
-| AI Model | `phi3:mini` |
-| Email | Gmail API OAuth2 |
-| Parsing | PyMuPDF, python-docx |
-| Auth | bcrypt + session middleware |
-| Frontend | Jinja2 + Tailwind + Vanilla JS |
-| Export | openpyxl |
+### V1 - Smart Order Intake
+- 📧 Gmail OAuth2 integration for automatic email scanning
+- 🔍 Intelligent email filtering (PO, Order, RFQ, Enquiry)
+- 📎 PDF & DOCX attachment parsing
+- 🤖 AI-powered order extraction (Mistral 7B)
+- ✅ Automatic customer creation
+- ⚠️ Manual review for incomplete extractions
+
+### V2 - Production & Inventory Brain
+- 📦 Real-time raw material stock tracking
+- 🔄 Automatic supplier reordering when stock is low
+- ⚙️ Intelligent production scheduling across machines
+- 📊 Live production progress tracking
+- ⚠️ Delay detection with automatic owner alerts
+
+### V3 - Dispatch & Reporting Engine
+- 🚚 Automatic dispatch confirmation emails to customers
+- 📈 Daily MIS report at 9:00 AM (AI-generated)
+- 📊 Owner dashboard with factory-wide metrics
+- 📝 Complete audit trail of all order status changes
+
+### Role-Based Dashboards
+| Role | Dashboard | Access |
+|------|------------|--------|
+| Owner | Full factory view | `/dashboard/owner` |
+| Office Staff | Order management | `/dashboard` |
+| Supervisor | Production floor | `/api/v2/supervisor-dashboard` |
+| Store | Inventory management | `/api/v2/store-dashboard` |
 
 ---
 
-## Project Structure
+## 🛠️ Tech Stack
 
-```text
-src/
-  agents/         # Gmail read, filter, extraction orchestrators
-  parsers/        # Attachment parsing
-  processors/     # End-to-end V1 pipeline logic
-  routes/         # FastAPI routes and dashboard endpoints
-  database/       # Models, connection, init bootstrap
-  templates/      # Login + office dashboard
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Python + FastAPI |
+| **Database** | PostgreSQL + SQLAlchemy |
+| **AI Runtime** | Ollama |
+| **AI Models** | Mistral 7B Q4_K_M, Phi-3 Mini |
+| **Email** | Gmail API (OAuth2) + SMTP |
+| **Scheduler** | APScheduler |
+| **Frontend** | HTML5 + CSS3 + Vanilla JS |
+| **Auth** | bcrypt + Session middleware |
+
+---
+
+## 📁 Project Structure
+
+```
+plantmind-ai/
+├── src/
+│   ├── agents/           # AI agents for all tasks
+│   ├── processors/       # Pipeline orchestrators
+│   ├── routes/           # API endpoints
+│   ├── database/         # Models & connection
+│   ├── models/          # Ollama integrations
+│   ├── gmail/           # Email reading & sending
+│   ├── parsers/         # PDF/DOCX parsing
+│   ├── templates/       # HTML dashboards
+│   ├── static/          # CSS & JavaScript
+│   └── scheduler.py     # Background tasks
+├── tests/               # Test suite
+├── scripts/             # Deployment scripts
+├── config/             # Configuration templates
+├── requirements.txt    # Python dependencies
+├── schema.sql          # Database schema
+└── README.md           # This file
 ```
 
 ---
 
-## Quick Start (Windows / Local)
+## 🚀 Quick Start
 
-### 1) Create venv and install dependencies
+### Prerequisites
+- Python 3.11+
+- PostgreSQL 15+
+- Ollama with models installed
 
-```powershell
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/PlantMind-AI.git
+cd PlantMind-AI
+
+# Create virtual environment
 python -m venv venv
-.\venv\Scripts\activate
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate    # Windows
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2) Configure `.env`
+### Configuration
 
-Copy `.env.example` to `.env` and set:
+```bash
+# Copy environment template
+cp .env.example .env
 
-```env
-DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/plantmind
-DB_POOL_SIZE=10
-DB_MAX_OVERFLOW=20
-DB_POOL_RECYCLE_SECONDS=1800
-APP_SECRET_KEY=change-this-to-a-long-random-value
-GMAIL_CLIENT_SECRET=config/credentials.json
-GMAIL_TOKEN_PATH=config/token.json
-OLLAMA_API_URL=http://localhost:11434/api/generate
-OLLAMA_MODEL=phi3:mini
-APP_HOST=0.0.0.0
-APP_PORT=8000
-SESSION_MAX_AGE_SECONDS=28800
-SESSION_COOKIE_NAME=plantmind_session
-SESSION_SAME_SITE=lax
-SESSION_HTTPS_ONLY=false
-LOGIN_ATTEMPT_WINDOW_SECONDS=300
-LOGIN_MAX_ATTEMPTS=5
-BOOTSTRAP_DEFAULT_USERS=true
-DEFAULT_ADMIN_PASSWORD=change-admin-password
-DEFAULT_OFFICE_PASSWORD=change-office-password
+# Edit .env with your settings:
+# - DATABASE_URL (PostgreSQL connection)
+# - GMAIL credentials
+# - OLLAMA settings
 ```
 
-### 3) Prepare services
+### Database Setup
 
-```powershell
-# PostgreSQL: ensure DB exists
+```bash
+# Create database
 psql -U postgres -c "CREATE DATABASE plantmind;"
 
-# Ollama model
+# Initialize tables (auto-creates users)
+python -c "from src.database import init_db; init_db()"
+
+# Pull AI models
+ollama pull mistral:7b-instruct-q4_K_M
 ollama pull phi3:mini
 ```
 
-### 4) Initialize database
+### Run the Application
 
-```powershell
-.\venv\Scripts\python -c "from src.database import init_db; init_db()"
+```bash
+# Start server
+python src/main.py
+# or
+uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 5) Run app
+Open **http://localhost:8000** and login with default credentials:
+- **office** / **office123**
+- **owner** / **owner123**
+- **supervisor** / **supervisor123**
+- **store** / **store123**
 
-```powershell
-.\venv\Scripts\python -m uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Open `http://localhost:8000/login`.
-
----
-
-## API Highlights
-
-- `POST /check-emails` -> trigger processing pipeline
-- `GET /orders` -> all orders
-- `GET /orders/flagged` -> flagged review queue
-- `POST /orders/{id}/complete-review` -> resolve flagged order
-- `GET /email-log` -> email processing log
-- `GET /processing-summary` -> dashboard summary metrics
-- `GET /customer-stats` -> quick customer cards
-- `GET /orders/export` -> Excel export
-- `GET /health/startup` -> detailed readiness report (DB/Ollama/Gmail/scheduler)
+> ⚠️ **Important**: Change default passwords in production!
 
 ---
 
-## Testing
+## 📋 Default Users
 
-```powershell
-.\venv\Scripts\python -m pytest -q
-.\venv\Scripts\python -m compileall src
-```
-
----
-
-## Security Notes
-
-- Do not commit `.env`, Gmail credentials, or token files.
-- Change bootstrap/default users before production use.
-- Use a strong `APP_SECRET_KEY`.
-- Dashboard rendering is escaped for untrusted content in email-derived fields.
-- Login endpoint includes rate limiting for repeated failures.
-- Session cookies are configurable (`SameSite`, max age, HTTPS-only).
-- Security headers (CSP, frame deny, nosniff) are enabled by default.
-- Database pool settings are configurable for throughput under load.
+| Username | Password | Role |
+|----------|-----------|------|
+| office | office123 | Order intake |
+| owner | owner123 | Full dashboard + reports |
+| supervisor | supervisor123 | Production tracking |
+| store | store123 | Inventory management |
 
 ---
 
-## Demo and Portfolio Assets
+## 🔒 Security
 
-- Demo script: `docs/demo_script.md`
-- Setup guide: `docs/setup_guide.md`
-- Technical overview: `docs/technical_overview.md`
-- User manual: `docs/user_manual.md`
-- Full V1 product spec: `V1_Smart_Order_Intake.md`
-
-If you are publishing on LinkedIn, record a short walkthrough following `docs/demo_script.md`.
+- All secrets stored in `.env` (never committed)
+- Role-based access control
+- Session management with secure cookies
+- Rate limiting on login
+- Input sanitization on all outputs
+- CSP security headers enabled
+- bcrypt password hashing
 
 ---
 
-## Roadmap
+## 📊 Database Schema
 
-- V2: production scheduling + inventory intelligence.
-- V3: dispatch automation + daily MIS reporting.
+16 tables covering all factory operations:
+- `users` - Authentication
+- `customers` - Customer directory
+- `orders` - Order tracking
+- `products` - Product catalog
+- `machines` - Machine management
+- `raw_materials` - Inventory
+- `production_schedule` - Production planning
+- `production_progress` - Floor updates
+- `reorder_log` - Supplier orders
+- And more...
 
-PlantMind AI V1 is the intake foundation for the full factory intelligence stack.
+---
 
+## 🎯 Key Highlights
+
+- ✅ **100% Local** - No cloud, no subscriptions, no API costs
+- ✅ **Multi-Agent** - 8 specialized AI agents working together
+- ✅ **Production Ready** - Real deployment in manufacturing context
+- ✅ **Resume Worthy** - Demonstrates advanced AI, backend, and system integration skills
+- ✅ **End-to-End** - Complete factory automation in one system
+
+---
+
+## 📝 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+## 👤 Author
+
+**Garvit** - BTech AI & Data Science, Year 2
+
+Built for real deployment in an injection moulding factory + portfolio showcase.
+
+---
+
+*Transforming factory chaos into intelligent automation with AI.*
