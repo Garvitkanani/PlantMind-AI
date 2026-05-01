@@ -32,17 +32,17 @@ PlantMind AI is a **fully local, multi-agent AI system** that automates end-to-e
 ┌─────────────────────────────────────────────────────────────────┐
 │                    PLANTMIND AI SYSTEM                          │
 ├─────────────────────────────────────────────────────────────────┤
-│  V1: Order Intake          V2: Production & Inventory          │
-│  ─────────────────         ────────────────────────────       │
+│  V1: Order Intake          V2: Production & Inventory           │
+│  ─────────────────         ────────────────────────────         │
 │  • Email Reader            • Inventory Check Agent              │
-│  • Email Filter            • Auto Reorder Agent                │
-│  • Attachment Parser      • Production Scheduler               │
+│  • Email Filter            • Auto Reorder Agent                 │
+│  • Attachment Parser       • Production Scheduler               │
 │  • Order Extraction        • Production Tracker                 │
 │                                                                 │
-│  V3: Dispatch & Reporting                                          │
-│  ──────────────────────────                                    │
+│  V3: Dispatch & Reporting                                       │
+│  ──────────────────────────                                     │
 │  • Dispatch Watcher        • MIS Report Agent                   │
-│  • Dispatch Agent          • Data Collector                    │
+│  • Dispatch Agent          • Data Collector                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
