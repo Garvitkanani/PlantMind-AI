@@ -1,0 +1,138 @@
+# ============================================================
+# PLANTMIND AI - .gitignore
+# Professional and comprehensive
+# ============================================================
+
+# =====================
+# PYTHON BYTECODE
+# =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# =====================
+# VIRTUAL ENVIRONMENTS
+# =====================
+venv/
+ENV/
+env/
+.venv
+.venv/
+ENV/
+env.bak/
+env.tar.gz
+
+# =====================
+# IDE & EDITORS
+# =====================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-*
+
+# =====================
+# ENVIRONMENT VARIABLES (SECRETS)
+# =====================
+.env
+.env.local
+.env.*.local
+
+# =====================
+# CONFIGURATION FILES (CONTAIN SECRETS)
+# =====================
+config/*.json
+config/*.yml
+config/*.yaml
+config/*.pem
+config/*.key
+config/*.crt
+token.json
+credentials.json
+
+# =====================
+# USER DATA & ATTACHMENTS
+# =====================
+attachments/
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.xls
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# =====================
+# DATABASE FILES
+# =====================
+*.db
+*.sqlite
+*.sqlite3
+
+# =====================
+# LOG FILES
+# =====================
+*.log
+logs/
+*.log.*
+
+# =====================
+# TEST FILES (ROOT LEVEL ONLY - tests/ is ok)
+# =====================
+test_*.py
+fix_*.py
+
+# =====================
+# TESTING & COVERAGE
+# =====================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+
+# =====================
+# DOCKER
+# =====================
+Dockerfile
+docker-compose.yml
+.docker/
+docker-entrypoint.sh
+
+# =====================
+# TEMPORARY FILES
+# =====================
+*.tmp
+*.temp
+*.bak
+*.backup
+cache/
+tmp/
+temp/
+
+# =====================
+# NODE MODULES (if any)
+# =====================
+node_modules/
+package-lock.json
+yarn.lock
+
+# =====================
+# BUILD OUTPUTS
+# =====================
+*.egg-info/
+dist/
+build/
+target/
+
+# =====================
+# PYTEST CONFIG (keep pytest.ini but ignore cache)
+# =====================
+.pytest_cache/

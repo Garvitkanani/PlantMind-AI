@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantMind AI — Factory Command Center</title>
+    <meta name="description" content="Owner dashboard for PlantMind AI Factory — real-time production monitoring, dispatch tracking, and MIS reporting.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .owner-nav {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .owner-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .owner-nav h1 { margin: 0; font-size: 1.5rem; }
+        .owner-nav p { margin: 0; opacity: 0.8; font-size: 0.875rem; }
+        .owner-nav-links { display: flex; align-items: center; gap: 0.75rem; }
+        .owner-nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.12);
+            transition: background 0.2s;
+        }
+        .owner-nav-links a:hover { background: rgba(255,255,255,0.25); }
+        .owner-nav-links .nav-logout { background: rgba(239,68,68,0.3); }
+
+        /* Health Cards */
+        .health-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .health-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .health-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .health-card h3 { font-size: 0.8rem; color: #6b7280; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .health-value { font-size: 2rem; font-weight: 700; color: #111827; line-height: 1; }
+        .health-sub { font-size: 0.8rem; color: #6b7280; margin-top: 0.4rem; }
+
+        .status-indicator {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.2rem 0.6rem; border-radius: 9999px;
+            font-size: 0.7rem; font-weight: 600;
+        }
+        .status-healthy { background: #d1fae5; color: #065f46; }
+        .status-warning { background: #fef3c7; color: #92400e; }
+        .status-critical { background: #fee2e2; color: #991b1b; }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .dashboard-card {
+            background: white; border-radius: 12px; padding: 1.5rem;
+            border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .dashboard-card h2 {
+            font-size: 1.1rem; font-weight: 600; margin: 0 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        /* Machine Grid */
+        .machine-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .machine-card {
+            background: #f9fafb; border-radius: 10px; padding: 1.25rem;
+            border: 1px solid #e5e7eb; transition: transform 0.2s;
+        }
+        .machine-card:hover { transform: translateY(-1px); }
+        .machine-card.running { border-left: 4px solid #10b981; }
+        .machine-card.available { border-left: 4px solid #3b82f6; }
+        .machine-card.maintenance { border-left: 4px solid #f59e0b; }
+        .machine-card.offline { border-left: 4px solid #ef4444; }
+
+        /* Activity Feed */
+        .activity-list { max-height: 400px; overflow-y: auto; }
+        .activity-item {
+            padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: flex-start; gap: 0.75rem;
+        }
+        .activity-icon {
+            width: 2rem; height: 2rem; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0;
+        }
+        .activity-icon.inbound { background: #dbeafe; }
+        .activity-icon.outbound { background: #d1fae5; }
+        .activity-icon.error { background: #fee2e2; }
+
+        /* Stock Bars */
+        .stock-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+        .stock-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .stock-fill.healthy { background: #10b981; }
+        .stock-fill.warning { background: #f59e0b; }
+        .stock-fill.critical { background: #ef4444; }
+
+        /* Quick Actions */
+        .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .action-btn {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 1rem; background: white; border: 1px solid #e5e7eb;
+            border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 0.9rem;
+            transition: all 0.2s; color: #374151;
+        }
+        .action-btn:hover { background: #f3f4f6; border-color: #d1d5db; transform: translateY(-1px); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* MIS Report Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px);
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 12px; padding: 2rem;
+            max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;
+        }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; }
+        .modal-body { white-space: pre-wrap; font-size: 0.9rem; line-height: 1.7; color: #374151; }
+
+        /* Dispatch History */
+        .dispatch-item {
+            padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .refresh-indicator {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            font-size: 0.75rem; color: #6b7280;
+        }
+        .refresh-indicator .dot {
+            width: 6px; height: 6px; background: #10b981; border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        @media (max-width: 1024px) {
+            .health-cards { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .quick-actions { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .health-cards { grid-template-columns: 1fr; }
+            .quick-actions { grid-template-columns: 1fr; }
+            .owner-nav-links a { font-size: 0.7rem; padding: 0.3rem 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="owner-nav">
+    <div class="container">
+        <div>
+            <h1>🏭 PlantMind AI</h1>
+            <p>Factory Command Center &nbsp;·&nbsp;
+                <span class="refresh-indicator"><span class="dot"></span> Live</span>
+            </p>
+        </div>
+        <div class="owner-nav-links">
+            <span style="opacity:0.8">Owner: <strong>{{ username }}</strong></span>
+            <a href="/dashboard">📋 Office</a>
+            <a href="/api/v2/supervisor-dashboard">🔧 Supervisor</a>
+            <a href="/api/v2/store-dashboard">📦 Store</a>
+            <a href="/logout" class="nav-logout">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container page-content">
+
+    <!-- Factory Health Overview -->
+    <section class="section">
+        <h2 class="section-title">Factory Health Overview</h2>
+        <div class="health-cards">
+            <div class="health-card">
+                <h3>Active Orders</h3>
+                <div class="health-value" id="activeOrders">—</div>
+                <div class="health-sub"><span id="activeStatus" class="status-indicator status-healthy">● On Track</span></div>
+            </div>
+            <div class="health-card">
+                <h3>In Production</h3>
+                <div class="health-value" id="inProduction">—</div>
+                <div class="health-sub">Orders currently running</div>
+            </div>
+            <div class="health-card">
+                <h3>Completed</h3>
+                <div class="health-value" id="completedTotal">—</div>
+                <div class="health-sub">Ready for dispatch</div>
+            </div>
+            <div class="health-card">
+                <h3>Dispatched</h3>
+                <div class="health-value" id="dispatchedTotal">—</div>
+                <div class="health-sub">Sent to customers</div>
+            </div>
+            <div class="health-card">
+                <h3>Delayed</h3>
+                <div class="health-value" id="overdueCount">—</div>
+                <div class="health-sub"><span id="delayStatus" class="status-indicator status-healthy">● None</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Dashboard Grid: Orders + Activity -->
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h2>📋 Live Orders</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Order</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Customer</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Product</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Qty</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Status</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Machine</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>📢 Recent Activity</h2>
+            <div class="activity-list" id="activityList">
+                <p style="text-align: center; padding: 2rem; color: #6b7280;">Loading activity...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Machine Status Board -->
+    <section class="section">
+        <h2 class="section-title">🔧 Machine Status Board</h2>
+        <div class="machine-grid" id="machineGrid">
+            <p style="text-align: center; padding: 2rem; color: #6b7280; grid-column: 1 / -1;">Loading machines...</p>
+        </div>
+    </section>
+
+    <!-- Inventory + Dispatch History -->
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h2>📦 Inventory & Stock Levels</h2>
+            <div id="inventoryList">
+                <p style="text-align: center; padding: 2rem; color: #6b7280;">Loading inventory...</p>
+            </div>
+        </div>
+        <div class="dashboard-card">
+            <h2>🚚 Recent Dispatches</h2>
+            <div id="dispatchList">
+                <p style="text-align: center; padding: 2rem; color: #6b7280;">Loading dispatch history...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIS Report History -->
+    <section class="section">
+        <h2 class="section-title">📊 MIS Report History</h2>
+        <div class="dashboard-card">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Date</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Subject</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Recipient</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Status</th>
+                            <th style="padding: 0.65rem; text-align: left; font-size: 0.8rem;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="misBody">
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280;">Loading MIS history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="section">
+        <h2 class="section-title">⚡ Quick Actions</h2>
+        <div class="quick-actions">
+            <button class="action-btn" id="btnCheckEmails" onclick="triggerAction('/check-emails', 'Checking emails...', this)">
+                📧 Check New Emails
+            </button>
+            <button class="action-btn" id="btnProcessOrders" onclick="triggerAction('/api/v2/process-new-orders', 'Processing orders...', this)">
+                ⚙️ Process New Orders
+            </button>
+            <button class="action-btn" id="btnDispatch" onclick="triggerAction('/api/v2/process-dispatch', 'Dispatching...', this)">
+                🚚 Run Dispatch
+            </button>
+            <button class="action-btn" id="btnMisReport" onclick="triggerAction('/api/v2/process-mis-report', 'Generating report...', this)">
+                📊 Generate MIS Report
+            </button>
+        </div>
+    </section>
+
+</div>
+
+<!-- MIS Report Modal -->
+<div class="modal-overlay" id="misModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="misModalTitle">MIS Report</h2>
+            <button class="modal-close" onclick="closeMisModal()">×</button>
+        </div>
+        <div class="modal-body" id="misModalBody">Loading...</div>
+    </div>
+</div>
+
+<script src="/static/js/owner_dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PlantMind AI — Smart Order Intake System for Injection Moulding Factories">
+    <title>PlantMind AI — Login</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-brand">
+                <h1>🏭 PlantMind AI</h1>
+                <p>Smart Order Intake System</p>
+            </div>
+
+            {% if error %}
+            <div class="login-error">⚠️ {{ error }}</div>
+            {% endif %}
+
+            <form method="POST" action="/login" autocomplete="on">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-input"
+                           placeholder="Enter your username" required autofocus autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-input"
+                           placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">Sign In →</button>
+            </form>
+
+            <div class="login-footer">
+                <p>PlantMind AI v1.0 — Factory Intelligence Platform</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantMind AI - Floor Supervisor Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Supervisor Dashboard Specific Styles */
+        .machine-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .machine-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        .machine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .machine-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .machine-status {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-available { background: #d1fae5; color: #065f46; }
+        .status-running { background: #dbeafe; color: #1e40af; }
+        .status-maintenance { background: #fef3c7; color: #92400e; }
+        .status-delayed { background: #fee2e2; color: #991b1b; }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .progress-section {
+            margin-top: 1rem;
+        }
+        
+        .progress-bar-container {
+            background: var(--border-color);
+            border-radius: 8px;
+            height: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
+        }
+        
+        .progress-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-supervisor {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-start {
+            background: #10b981;
+            color: white;
+        }
+        .btn-start:hover { background: #059669; }
+        
+        .btn-update {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-update:hover { background: #2563eb; }
+        
+        .btn-complete {
+            background: #8b5cf6;
+            color: white;
+        }
+        .btn-complete:hover { background: #7c3aed; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .delay-alert {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .delay-icon {
+            font-size: 1.5rem;
+        }
+        
+        .update-form {
+            display: none;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .update-form.active {
+            display: block;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.375rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-info { background: #3b82f6; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Modal overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            padding: 2rem;
+            min-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-bottom: 1.5rem;
+        }
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Filter buttons */
+        .filter-btn {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid var(--border-color, #e2e8f0);
+            background: var(--card-bg, #fff);
+            color: var(--text-secondary, #64748b);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { border-color: #818cf8; color: #4f46e5; }
+        .filter-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+
+        /* Priority badges */
+        .priority-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: 0.5rem;
+        }
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-normal { background: #dbeafe; color: #1e40af; }
+        .priority-rush { background: #fef3c7; color: #92400e; }
+
+        /* Nav styles */
+        .nav {
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #3730a3);
+            color: white;
+            padding: 0 1.5rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.1rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-links span { font-size: 0.85rem; opacity: 0.8; }
+        .nav-links .btn { font-size: 0.78rem; padding: 0.35rem 0.75rem; }
+        .nav-links .btn-outline { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; text-decoration: none; }
+        .nav-links .btn-outline:hover { background: rgba(255,255,255,0.2); text-decoration: none; }
+        .nav-links .btn-primary { background: linear-gradient(135deg,#ef4444,#dc2626); border: none; color: white; border-radius: 6px; text-decoration: none; }
+
+        /* Dashboard container */
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .dashboard-header { margin-bottom: 2rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .page-subtitle { font-size: 0.875rem; color: var(--text-secondary, #64748b); margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-brand">
+            <span>🏭</span>
+            <span>PlantMind AI</span>
+        </div>
+        <div class="nav-links">
+            <span>Floor Supervisor Dashboard</span>
+            <a href="/dashboard" class="btn btn-outline">Office Dashboard</a>
+            <a href="/api/v2/store-dashboard" class="btn btn-outline">Store Dashboard</a>
+            <a href="/logout" class="btn btn-primary">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="page-title">🏭 Floor Supervisor Dashboard</h1>
+            <p class="page-subtitle">Monitor and update production progress on the factory floor</p>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="activeMachines">0</div>
+                <div class="stat-label">Active Machines</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="runningOrders">0</div>
+                <div class="stat-label">Running Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="scheduledOrders">0</div>
+                <div class="stat-label">Scheduled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="delayedOrders">0</div>
+                <div class="stat-label">Delayed</div>
+            </div>
+        </div>
+
+        <!-- Last Updated + Status Filter -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem;">
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                <button class="filter-btn active" onclick="filterSchedules('all', this)">All</button>
+                <button class="filter-btn" onclick="filterSchedules('scheduled', this)">📋 Scheduled</button>
+                <button class="filter-btn" onclick="filterSchedules('in_production', this)">🏭 In Production</button>
+                <button class="filter-btn" onclick="filterSchedules('delayed', this)">⚠️ Delayed</button>
+                <button class="filter-btn" onclick="filterSchedules('completed', this)">✅ Completed</button>
+            </div>
+            <div id="lastUpdated" style="font-size:0.78rem;color:var(--text-secondary,#64748b);">
+                Last updated: Loading...
+            </div>
+        </div>
+
+        <!-- Delay Alerts Container -->
+        <div id="delayAlerts"></div>
+
+        <!-- Production Schedule Container -->
+        <div id="productionSchedule">
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <h3>Loading production schedule...</h3>
+                <p>Please wait while we fetch the latest data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div class="modal" id="updateModal">
+        <div class="modal-content">
+            <h3>Update Production Progress</h3>
+            <form id="updateForm">
+                <input type="hidden" id="updateScheduleId">
+                <div class="form-group">
+                    <label>Pieces Completed (Total)</label>
+                    <input type="number" id="updatePiecesCompleted" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <input type="text" id="updateNotes" placeholder="Any issues or comments...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeUpdateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Progress</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let schedules = [];
+        let machines = [];
+        let activeFilter = 'all';
+
+        // XSS protection
+        function esc(str) {
+            if (str == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        // API helper
+        async function api(endpoint, options = {}) {
+            const res = await fetch(endpoint, {
+                headers: { "Content-Type": "application/json" },
+                ...options
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        // Filter schedules by status
+        function filterSchedules(status, btn) {
+            activeFilter = status;
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderSchedules();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const [scheduleData, machineData] = await Promise.all([
+                    api("/api/v2/production-schedule"),
+                    api("/api/v2/machines")
+                ]);
+                
+                schedules = scheduleData.schedules || [];
+                machines = machineData.machines || [];
+                
+                renderStats();
+                renderSchedules();
+                renderDelayAlerts();
+
+                // Update last-updated timestamp
+                const el = document.getElementById("lastUpdated");
+                if (el) el.textContent = "Last updated: " + new Date().toLocaleTimeString();
+            } catch (e) {
+                console.error("Failed to load dashboard:", e);
+                showToast("Failed to load dashboard data", "error");
+            }
+        }
+
+        // Render statistics
+        function renderStats() {
+            const activeMachines = machines.filter(m => m.status === "running" || m.status === "available").length;
+            const runningOrders = schedules.filter(s => s.status === "in_production").length;
+            const scheduledOrders = schedules.filter(s => s.status === "scheduled").length;
+            const delayedOrders = schedules.filter(s => s.is_delayed).length;
+
+            document.getElementById("activeMachines").textContent = activeMachines;
+            document.getElementById("runningOrders").textContent = runningOrders;
+            document.getElementById("scheduledOrders").textContent = scheduledOrders;
+            document.getElementById("delayedOrders").textContent = delayedOrders;
+        }
+
+        // Render production schedules
+        function renderSchedules() {
+            const container = document.getElementById("productionSchedule");
+            
+            // Apply filter
+            let filtered = schedules;
+            if (activeFilter === 'delayed') {
+                filtered = schedules.filter(s => s.is_delayed);
+            } else if (activeFilter !== 'all') {
+                filtered = schedules.filter(s => s.status === activeFilter);
+            }
+            
+            if (filtered.length === 0) {
+                const msg = activeFilter === 'all' 
+                    ? 'All machines are currently idle. New orders will appear here when scheduled.'
+                    : `No ${activeFilter.replace('_', ' ')} orders found.`;
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏭</div>
+                        <h3>${activeFilter === 'all' ? 'No Active Production' : 'No Results'}</h3>
+                        <p>${msg}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(schedule => {
+                const machine = machines.find(m => m.machine_id === schedule.machine_id) || {};
+                const statusClass = schedule.is_delayed ? "status-delayed" : 
+                                   schedule.status === "in_production" ? "status-running" :
+                                   schedule.status === "scheduled" ? "status-available" : "status-maintenance";
+                const statusText = schedule.is_delayed ? "DELAYED" : schedule.status?.toUpperCase();
+                const priority = schedule.priority || 'normal';
+                const priorityBadge = priority !== 'normal' 
+                    ? `<span class="priority-badge priority-${priority}">${priority}</span>` : '';
+
+                return `
+                    <div class="machine-card" data-schedule-id="${schedule.schedule_id}">
+                        <div class="machine-header">
+                            <div class="machine-name">${esc(machine.name || 'Unknown Machine')}${priorityBadge}</div>
+                            <span class="machine-status ${statusClass}">${esc(statusText)}</span>
+                        </div>
+                        
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Order #</span>
+                                <span class="detail-value">ORD-${schedule.order_id?.toString().padStart(3, '0')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Product</span>
+                                <span class="detail-value">${esc(schedule.product_name || 'Unknown')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Quantity</span>
+                                <span class="detail-value">${schedule.quantity?.toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">${esc(schedule.customer_name || 'Unknown')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Est. Start</span>
+                                <span class="detail-value">${formatDate(schedule.estimated_start)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Est. End</span>
+                                <span class="detail-value">${formatDate(schedule.estimated_end)}</span>
+                            </div>
+                        </div>
+
+                        ${schedule.completion_percentage !== undefined ? `
+                        <div class="progress-section">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: ${Math.min(schedule.completion_percentage, 100)}%">
+                                    <span class="progress-text">${schedule.completion_percentage.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                                <span>${schedule.pieces_completed || 0} pieces completed</span>
+                                <span>${schedule.quantity || 0} total</span>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div class="action-buttons">
+                            ${schedule.status === "scheduled" ? `
+                                <button class="btn-supervisor btn-start" onclick="startProduction(${schedule.schedule_id})">
+                                    ▶️ Start Production
+                                </button>
+                            ` : ''}
+                            
+                            ${schedule.status === "in_production" ? `
+                                <button class="btn-supervisor btn-update" onclick="openUpdateModal(${schedule.schedule_id}, ${schedule.quantity})">
+                                    📊 Update Progress
+                                </button>
+                                <button class="btn-supervisor btn-complete" onclick="completeProduction(${schedule.schedule_id})">
+                                    ✓ Mark Complete
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render delay alerts
+        function renderDelayAlerts() {
+            const delayed = schedules.filter(s => s.is_delayed);
+            const container = document.getElementById("delayAlerts");
+            
+            if (delayed.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = delayed.map(s => `
+                <div class="delay-alert">
+                    <span class="delay-icon">⚠️</span>
+                    <div>
+                        <strong>DELAY DETECTED:</strong> Order #${s.order_id} on ${s.machine_name} 
+                        - New ETA: ${formatDate(s.new_eta)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Format date helper
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        // Start production
+        async function startProduction(scheduleId) {
+            if (!confirm("Are you sure you want to START production for this order? Materials will be reserved.")) return;
+            try {
+                await api(`/api/v2/production-schedule/${scheduleId}/start`, {
+                    method: "POST"
+                });
+                showToast("Production started successfully", "success");
+                loadDashboard();
+            } catch (e) {
+                showToast("Failed to start production", "error");
+            }
+        }
+
+        // Open update modal
+        function openUpdateModal(scheduleId, totalQuantity) {
+            document.getElementById("updateScheduleId").value = scheduleId;
+            document.getElementById("updatePiecesCompleted").max = totalQuantity;
+            document.getElementById("updateModal").classList.add("active");
+        }
+
+        // Close update modal
+        function closeUpdateModal() {
+            document.getElementById("updateModal").classList.remove("active");
+        }
+
+        // Submit progress update
+        document.getElementById("updateForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const scheduleId = document.getElementById("updateScheduleId").value;
+            const piecesCompleted = parseInt(document.getElementById("updatePiecesCompleted").value);
+            const notes = document.getElementById("updateNotes").value;
+            
+            try {
+                await api(`/api/v2/production-schedule/${scheduleId}/progress`, {
+                    method: "POST",
+                    body: JSON.stringify({ pieces_completed: piecesCompleted, notes })
+                });
+                
+                closeUpdateModal();
+                showToast("Progress updated successfully", "success");
+                loadDashboard();
+            } catch (e) {
+                showToast("Failed to update progress", "error");
+            }
+        });
+
+        // Complete production
+        async function completeProduction(scheduleId) {
+            if (!confirm("Are you sure you want to mark this order as complete?")) return;
+            
+            try {
+                await api(`/api/v2/production-schedule/${scheduleId}/complete`, {
+                    method: "POST"
+                });
+                showToast("Production completed", "success");
+                loadDashboard();
+            } catch (e) {
+                showToast("Failed to complete production", "error");
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = "info") {
+            const toast = document.createElement("div");
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+
+        // Initial load
+        loadDashboard();
+    </script>
+</body>
+</html>

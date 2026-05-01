@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantMind AI - Store Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Store Dashboard Specific Styles */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .material-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+        
+        .material-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .material-card.critical {
+            border-color: #ef4444;
+            background: linear-gradient(to bottom, #fef2f2, var(--card-bg));
+        }
+        
+        .material-card.warning {
+            border-color: #f59e0b;
+            background: linear-gradient(to bottom, #fffbeb, var(--card-bg));
+        }
+        
+        .material-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .material-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .stock-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .indicator-healthy { background: #d1fae5; color: #065f46; }
+        .indicator-warning { background: #fef3c7; color: #92400e; }
+        .indicator-critical { background: #fee2e2; color: #991b1b; }
+        
+        .stock-level {
+            margin: 1rem 0;
+        }
+        
+        .stock-bar-container {
+            background: var(--border-color);
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .stock-bar {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+        
+        .stock-bar.healthy { background: #10b981; }
+        .stock-bar.warning { background: #f59e0b; }
+        .stock-bar.critical { background: #ef4444; }
+        
+        .stock-numbers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .current-stock {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .reorder-level {
+            color: var(--text-secondary);
+        }
+        
+        .supplier-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-store {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-reorder {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-reorder:hover { background: #2563eb; }
+        
+        .btn-update {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-update:hover { background: #d1d5db; }
+        
+        .reorder-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .reorder-list {
+            margin-top: 1rem;
+        }
+        
+        .reorder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .reorder-item:last-child {
+            border-bottom: none;
+        }
+        
+        .reorder-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-ordered { background: #dbeafe; color: #1e40af; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        
+        .modal-form .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .modal-form input, .modal-form select {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: 0.75rem 1.25rem;
+            background: none;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--text-primary);
+            border-bottom-color: #3b82f6;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-info { background: #3b82f6; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Modal overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            padding: 2rem;
+            min-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-bottom: 1.5rem;
+        }
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Stats grid for store */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-brand">
+            <span>📦</span>
+            <span>PlantMind AI</span>
+        </div>
+        <div class="nav-links">
+            <span>Store Dashboard</span>
+            <a href="/dashboard" class="btn btn-outline">Office Dashboard</a>
+            <a href="/api/v2/supervisor-dashboard" class="btn btn-outline">Supervisor Dashboard</a>
+            <a href="/logout" class="btn btn-primary">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="page-title">📦 Store & Inventory Dashboard</h1>
+            <p class="page-subtitle">Manage raw materials, stock levels, and supplier reorders</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('inventory')">📊 Current Inventory</button>
+            <button class="tab" onclick="switchTab('reorders')">📋 Reorder History</button>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="inventoryTab" class="tab-content active">
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalMaterials">0</div>
+                    <div class="stat-label">Total Materials</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="healthyStock">0</div>
+                    <div class="stat-label">Healthy Stock</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="lowStock">0</div>
+                    <div class="stat-label">Low Stock</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingReorders">0</div>
+                    <div class="stat-label">Pending Reorders</div>
+                </div>
+            </div>
+
+            <div id="inventoryGrid" class="inventory-grid">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <h3>Loading inventory...</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reorders Tab -->
+        <div id="reordersTab" class="tab-content">
+            <div class="reorder-section">
+                <h3>📋 Recent Reorders</h3>
+                <div id="reorderList" class="reorder-list">
+                    <div class="empty-state">
+                        <p>Loading reorder history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Stock Modal -->
+    <div class="modal" id="updateStockModal">
+        <div class="modal-content">
+            <h3>📦 Update Stock Level</h3>
+            <form id="updateStockForm" class="modal-form">
+                <input type="hidden" id="updateMaterialId">
+                <input type="hidden" id="currentStockValue">
+                
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Current Stock:</span>
+                        <strong id="displayCurrentStock">0 kg</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                        <span>After Update:</span>
+                        <strong id="displayNewStock" style="color: var(--text-primary);">0 kg</strong>
+                    </div>
+                    <div id="stockChangeIndicator" style="text-align: center; margin-top: 0.5rem; padding: 0.5rem; border-radius: 4px; font-weight: 600;">
+                        No Change
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>New Stock Level (kg)</label>
+                    <input type="number" id="newStockLevel" step="0.01" min="0" required oninput="calculateStockChange()">
+                    <small style="color: var(--text-secondary);">Enter the actual total stock after counting/delivery/wastage</small>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button type="button" class="btn btn-outline" onclick="adjustStock(+100)">+100 kg</button>
+                    <button type="button" class="btn btn-outline" onclick="adjustStock(+500)">+500 kg</button>
+                    <button type="button" class="btn btn-outline" onclick="adjustStock(-50)">-50 kg</button>
+                    <button type="button" class="btn btn-outline" onclick="adjustStock(-100)">-100 kg</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reason / Notes</label>
+                    <select id="updateReason" style="margin-bottom: 0.5rem;" onchange="updateNotesFromReason()">
+                        <option value="">-- Select Reason --</option>
+                        <option value="New delivery received">📦 New Delivery Received</option>
+                        <option value="Daily production usage">🏭 Daily Production Used</option>
+                        <option value="Wastage/scrap">⚠️ Wastage/Scrap</option>
+                        <option value="Returns from production">↩️ Returns from Production</option>
+                        <option value="Physical inventory count">📊 Physical Inventory Count</option>
+                        <option value="Other">📝 Other (specify in notes)</option>
+                    </select>
+                    <input type="text" id="stockNotes" placeholder="Additional details...">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('updateStockModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">✓ Confirm Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manual Reorder Modal -->
+    <div class="modal" id="reorderModal">
+        <div class="modal-content">
+            <h3>Create Manual Reorder</h3>
+            <form id="reorderForm" class="modal-form">
+                <input type="hidden" id="reorderMaterialId">
+                <div class="form-group">
+                    <label>Material</label>
+                    <input type="text" id="reorderMaterialName" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Supplier</label>
+                    <select id="reorderSupplierId" required>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity (kg)</label>
+                    <input type="number" id="reorderQuantity" step="0.01" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Expected Delivery</label>
+                    <input type="date" id="expectedDelivery">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('reorderModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Reorder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let materials = [];
+        let reorders = [];
+        let suppliers = [];
+
+        // XSS protection
+        function esc(str) {
+            if (str == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        // API helper
+        async function api(endpoint, options = {}) {
+            const res = await fetch(endpoint, {
+                headers: { "Content-Type": "application/json" },
+                ...options
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const [materialsData, reordersData, suppliersData] = await Promise.all([
+                    api("/api/v2/materials"),
+                    api("/api/v2/reorders"),
+                    api("/api/v2/suppliers")
+                ]);
+                
+                materials = materialsData.materials || [];
+                reorders = reordersData.reorders || [];
+                suppliers = suppliersData.suppliers || [];
+                
+                renderStats();
+                renderInventory();
+                renderReorders();
+            } catch (e) {
+                console.error("Failed to load dashboard:", e);
+                showToast("Failed to load dashboard data", "error");
+            }
+        }
+
+        // Render statistics
+        function renderStats() {
+            const healthy = materials.filter(m => parseFloat(m.current_stock_kg) > parseFloat(m.reorder_level_kg) * 1.5).length;
+            const low = materials.filter(m => parseFloat(m.current_stock_kg) <= parseFloat(m.reorder_level_kg)).length;
+            const pending = reorders.filter(r => ["pending", "ordered", "confirmed"].includes(r.status)).length;
+
+            document.getElementById("totalMaterials").textContent = materials.length;
+            document.getElementById("healthyStock").textContent = healthy;
+            document.getElementById("lowStock").textContent = low;
+            document.getElementById("pendingReorders").textContent = pending;
+        }
+
+        // Render inventory grid
+        function renderInventory() {
+            const container = document.getElementById("inventoryGrid");
+            
+            if (materials.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">📦</div>
+                        <h3>No Materials Found</h3>
+                        <p>Add materials to start tracking inventory.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = materials.map(m => {
+                const stockRatio = parseFloat(m.current_stock_kg) / parseFloat(m.reorder_level_kg);
+                let statusClass = "healthy";
+                let indicatorClass = "indicator-healthy";
+                let cardClass = "";
+                let statusText = "Healthy";
+                
+                if (stockRatio <= 1.0) {
+                    statusClass = "critical";
+                    indicatorClass = "indicator-critical";
+                    cardClass = "critical";
+                    statusText = "CRITICAL";
+                } else if (stockRatio <= 1.5) {
+                    statusClass = "warning";
+                    indicatorClass = "indicator-warning";
+                    cardClass = "warning";
+                    statusText = "Low";
+                }
+                
+                const barWidth = Math.min((parseFloat(m.current_stock_kg) / (parseFloat(m.reorder_level_kg) * 2)) * 100, 100);
+                
+                return `
+                    <div class="material-card ${cardClass}">
+                        <div class="material-header">
+                            <div class="material-name">${esc(m.name)}</div>
+                            <span class="stock-indicator ${indicatorClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="stock-level">
+                            <div class="stock-bar-container">
+                                <div class="stock-bar ${statusClass}" style="width: ${barWidth}%"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <span class="current-stock">${parseFloat(m.current_stock_kg).toFixed(2)} kg</span>
+                                <span class="reorder-level">Reorder: ${parseFloat(m.reorder_level_kg).toFixed(2)} kg</span>
+                            </div>
+                        </div>
+                        
+                        <div class="supplier-info">
+                            📞 ${esc(m.supplier_name || 'No supplier')}<br>
+                            💰 ₹${parseFloat(m.unit_price_per_kg || 0).toFixed(2)}/kg
+                        </div>
+                        
+                        <div class="action-bar">
+                            <button class="btn-store btn-update" onclick="openUpdateStockModal(${m.material_id}, ${m.current_stock_kg})">
+                                Update Stock
+                            </button>
+                            <button class="btn-store btn-reorder" onclick="openReorderModal(${m.material_id}, '${esc(m.name)}')">
+                                Reorder
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render reorders
+        function renderReorders() {
+            const container = document.getElementById("reorderList");
+            
+            if (reorders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No reorders found.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = reorders.slice(0, 10).map(r => {
+                const statusClass = `status-${r.status}`;
+                return `
+                    <div class="reorder-item">
+                        <div>
+                            <strong>${esc(r.material_name)}</strong><br>
+                            <small>${parseFloat(r.quantity_kg).toFixed(2)} kg to ${esc(r.supplier_name)}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="reorder-status ${statusClass}">${esc(r.status)}</span><br>
+                            <small>${formatDate(r.created_at)}</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            // Find and activate the clicked tab button
+            document.querySelectorAll('.tab').forEach(t => {
+                if (t.textContent.toLowerCase().includes(tab)) {
+                    t.classList.add('active');
+                }
+            });
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // Open update stock modal
+        function openUpdateStockModal(materialId, currentStock) {
+            document.getElementById("updateMaterialId").value = materialId;
+            document.getElementById("currentStockValue").value = currentStock;
+            document.getElementById("newStockLevel").value = currentStock;
+            document.getElementById("displayCurrentStock").textContent = parseFloat(currentStock).toFixed(2) + " kg";
+            document.getElementById("updateReason").value = "";
+            document.getElementById("stockNotes").value = "";
+            calculateStockChange();
+            document.getElementById("updateStockModal").classList.add("active");
+        }
+
+        // Calculate and display stock change
+        function calculateStockChange() {
+            const current = parseFloat(document.getElementById("currentStockValue").value) || 0;
+            const newStock = parseFloat(document.getElementById("newStockLevel").value) || 0;
+            const difference = newStock - current;
+            
+            document.getElementById("displayNewStock").textContent = newStock.toFixed(2) + " kg";
+            
+            const indicator = document.getElementById("stockChangeIndicator");
+            if (difference > 0) {
+                indicator.textContent = `📥 ADDING: +${difference.toFixed(2)} kg`;
+                indicator.style.background = "#d1fae5";
+                indicator.style.color = "#065f46";
+            } else if (difference < 0) {
+                indicator.textContent = `📤 REMOVING: ${difference.toFixed(2)} kg`;
+                indicator.style.background = "#fee2e2";
+                indicator.style.color = "#991b1b";
+            } else {
+                indicator.textContent = "No Change";
+                indicator.style.background = "var(--bg-secondary)";
+                indicator.style.color = "var(--text-secondary)";
+            }
+        }
+
+        // Adjust stock with quick buttons
+        function adjustStock(amount) {
+            const current = parseFloat(document.getElementById("currentStockValue").value) || 0;
+            const newValue = Math.max(0, current + amount);
+            document.getElementById("newStockLevel").value = newValue;
+            calculateStockChange();
+        }
+
+        // Update notes when reason is selected
+        function updateNotesFromReason() {
+            const reason = document.getElementById("updateReason").value;
+            const notesField = document.getElementById("stockNotes");
+            if (reason && reason !== "Other") {
+                notesField.value = reason;
+            }
+        }
+
+        // Open reorder modal
+        function openReorderModal(materialId, materialName) {
+            document.getElementById("reorderMaterialId").value = materialId;
+            document.getElementById("reorderMaterialName").value = materialName;
+            
+            // Populate suppliers
+            const supplierSelect = document.getElementById("reorderSupplierId");
+            supplierSelect.innerHTML = suppliers.map(s => 
+                `<option value="${s.supplier_id}">${s.name}</option>`
+            ).join('');
+            
+            // Set default quantity from material's reorder_quantity_kg
+            const material = materials.find(m => m.material_id === materialId);
+            if (material) {
+                document.getElementById("reorderQuantity").value = material.reorder_quantity_kg;
+            }
+            
+            document.getElementById("reorderModal").classList.add("active");
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove("active");
+        }
+
+        // Update stock form submit
+        document.getElementById("updateStockForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const materialId = document.getElementById("updateMaterialId").value;
+            const newStock = parseFloat(document.getElementById("newStockLevel").value);
+            const notes = document.getElementById("stockNotes").value;
+            
+            try {
+                await api(`/api/v2/materials/${materialId}/stock`, {
+                    method: "POST",
+                    body: JSON.stringify({ new_stock_kg: newStock, notes })
+                });
+                
+                closeModal("updateStockModal");
+                showToast("Stock updated successfully", "success");
+                loadDashboard();
+            } catch (e) {
+                showToast("Failed to update stock", "error");
+            }
+        });
+
+        // Reorder form submit
+        document.getElementById("reorderForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const materialId = document.getElementById("reorderMaterialId").value;
+            const supplierId = document.getElementById("reorderSupplierId").value;
+            const quantity = parseFloat(document.getElementById("reorderQuantity").value);
+            const expectedDelivery = document.getElementById("expectedDelivery").value;
+            
+            try {
+                await api("/api/v2/reorders", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        material_id: materialId,
+                        supplier_id: supplierId,
+                        quantity_kg: quantity,
+                        expected_delivery: expectedDelivery,
+                        triggered_by: "manual_store"
+                    })
+                });
+                
+                closeModal("reorderModal");
+                showToast("Reorder created successfully", "success");
+                loadDashboard();
+            } catch (e) {
+                showToast("Failed to create reorder", "error");
+            }
+        });
+
+        // Format date helper
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        // Toast notification
+        function showToast(message, type = "info") {
+            const toast = document.createElement("div");
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Auto-refresh every 60 seconds
+        setInterval(loadDashboard, 60000);
+
+        // Initial load
+        loadDashboard();
+    </script>
+</body>
+</html>
