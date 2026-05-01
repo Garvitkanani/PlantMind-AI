@@ -247,9 +247,9 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## 👤 Author
 
-**Garvit** - BTech AI & Data Science, Year 2
-
-Built for real deployment in an injection moulding factory + portfolio showcase.
+Garvit Kanani
+📬 Email: garvitkanani@gmail.com
+🔗 LinkedIn: www.linkedin.com/in/garvit-kanani
 
 ---
 
